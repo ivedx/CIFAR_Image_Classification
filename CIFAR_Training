@@ -1,0 +1,61 @@
+import keras
+from keras.datasets import cifar10
+from keras.layers import Conv2D, MaxPooling2D, Dense, Flatten
+from keras.models import Sequential
+
+# Load the CIFAR-10 dataset
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+
+# Preprocess the data
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+y_train = keras.utils.to_categorical(y_train)
+y_test = keras.utils.to_categorical(y_test)
+
+# Build the model
+model = Sequential()
+model.add(Conv2D(32, (3, 3), padding='same', activation='relu', input_shape=x_train.shape[1:]))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Flatten())
+model.add(Dense(10, activation='softmax'))
+
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Train the model
+model.fit(x_train, y_train, epochs=10, batch_size=128, validation_data=(x_test, y_test))
+
+# Evaluate the model
+test_loss, test_acc = model.evaluate(x_test, y_test)
+print('Test accuracy:', test_acc)
+
+# Make predictions
+predictions = model.predict(x_test)
+
+import numpy as np
+from tensorflow.keras.preprocessing import image
+
+# Load the image and resize it to 32x32 pixels
+img_path = '/Users/ismailivedi/Desktop/gemi.jpg'
+img = image.load_img(img_path, target_size=(32, 32))
+
+# Convert the image to a numpy array
+x = image.img_to_array(img)
+
+# Normalize the pixel values to be between 0 and 1
+x /= 255
+
+# Reshape the numpy array to have a single sample with 3 channels (RGB)
+x = np.expand_dims(x, axis=0)
+
+# Use the trained model to make a prediction
+prediction = model.predict(x)
+
+# Print the predicted class label (e.g. 'cat', 'dog', 'frog')
+class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck', 'ball']
+predicted_class = class_names[np.argmax(prediction)]
+print('Predicted class:', predicted_class)
